@@ -1,55 +1,52 @@
-=====================================================================================================
 CPU能直接访问的存储结构，由快到慢：
 - 寄存器(Register)
 - cache
-    - L1 Cache (不同CPU核之间相互独立)
-    - L2 Cache (通常是独立的)
-    - L3 Cache (通常是共享的)
+  - L1 Cache (不同CPU核之间相互独立)
+  - L2 Cache (通常是独立的)
+  - L3 Cache (通常是共享的)
 - 内存
 
-=====================================================================================================
-#⭐ std::atomic
+## 1. std::atomic
 成员函数:
-    1. is_lock_free
-    2. store
-    3. load
-    4. exchange
-    5. compare_exchange_weak
-    6. compare_exchange_strong
-    7. wait (C++20)
-    8. notify_one (C++20)
-    9. notify_all (C++20)
-    10. fetch_add / operator+=
-    11. fetch_sub / operator-=
-    12. fetch_and / operator&=
-    13. fetch_or / operator|=
-    14. fetch_xor / operator^=
+  - is_lock_free
+  - store
+  - load
+  - exchange
+  - compare_exchange_weak
+  - compare_exchange_strong
+  - wait (C++20)
+  - notify_one (C++20)
+  - notify_all (C++20)
+  - fetch_add / operator+=
+  - fetch_sub / operator-=
+  - fetch_and / operator&=
+  - fetch_or / operator|=
+  - fetch_xor / operator^=
 
-=====================================================================================================
-⭐std::memory_order
-    memory_order_relaxed
-    memory_order_consume
-    memory_order_acquire
-    memory_order_release
-    memory_order_acq_rel
-    memory_order_seq_cst
 
-=====================================================================================================
-⭐缓存一致性协议MESI
-1. Modified (已修改)
+## 2. std::memory_order
+  - memory_order_relaxed
+  - memory_order_consume
+  - memory_order_acquire
+  - memory_order_release
+  - memory_order_acq_rel
+  - memory_order_seq_cst
+
+
+## 3. 缓存一致性协议MESI
+  - Modified (已修改)
     该缓存行刚刚被修改过，且保证不会出现在其他CPU核心的缓存中。此时该CPU核心为对应数据的唯一持有者。
-2. Exclusive (独占)
+  - Exclusive (独占)
     该缓存行的数据目前由该CPU核心独占，但因为没有被修改过，因此与内存数据也一致。
-3. Shared (共享)
+  - Shared (共享)
     该缓存行的内容与至少一个其他CPU所共享，因此CPU核心修改此缓存行时需要与其他CPU核心协商。
-4. Invalid (无效)
+  - Invalid (无效)
     该缓存行为无效行。
 
 当一段数据在多个CPU核心中共享时，CPU核心在更新数据时需要通过总线发送Invalidate广播消息，等到其他CPU核心将缓存行置为Invalid状态后才能修改缓存数据。
 
-=====================================================================================================
-⭐内存乱序
 
+## 4. 内存乱序
 Store Buffer
 在CPU和缓存之间存在一个Store Buffer，写操作不会立即向其他CPU核心发送Invalidate消息，而是先将写操作放入到Store Buffer中，然后即可返回执行其他的操作，具体的写入和同步操作由Store Buffer来执行。如果在Store Buffer中的数据写入缓存前就需要读取它，还需要从Store Buffer读取数据。
 
@@ -58,5 +55,5 @@ Invalidate Queue
 
 Store Buffer引入了写入延后，Invalidate Queue引入了读取提前 (导致数据延迟更新，从而使得CPU读取到旧数据，看起来像是读取提前了)，由于这两者的存在而导致多核心数据同步时出现乱序的问题。
 
-=====================================================================================================
-⭐内存屏障
+
+## 5. 内存屏障
