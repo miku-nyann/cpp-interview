@@ -1,14 +1,14 @@
 =====================================================================================================
 CPU能直接访问的存储结构，由快到慢：
-1. 寄存器(Register)
-2. cache
-    2.1. L1 Cache (不同CPU核之间相互独立)
-    2.2. L2 Cache (通常是独立的)
-    2.3. L3 Cache (通常是共享的)
-3. 内存
+- 寄存器(Register)
+- cache
+    - L1 Cache (不同CPU核之间相互独立)
+    - L2 Cache (通常是独立的)
+    - L3 Cache (通常是共享的)
+- 内存
 
 =====================================================================================================
-⭐std::atomic
+#⭐ std::atomic
 成员函数:
     1. is_lock_free
     2. store
@@ -45,24 +45,18 @@ CPU能直接访问的存储结构，由快到慢：
 4. Invalid (无效)
     该缓存行为无效行。
 
-当一段数据在多个CPU核心中共享时，CPU核心在更新数据时需要通过总线发送Invalidate广播消息，等到其他CPU核心将缓存
-行置为Invalid状态后才能修改缓存数据。
+当一段数据在多个CPU核心中共享时，CPU核心在更新数据时需要通过总线发送Invalidate广播消息，等到其他CPU核心将缓存行置为Invalid状态后才能修改缓存数据。
 
 =====================================================================================================
 ⭐内存乱序
 
 Store Buffer
-在CPU和缓存之间存在一个Store Buffer，写操作不会立即向其他CPU核心发送Invalidate消息，而是先将写操作放入到Store
-Buffer中，然后即可返回执行其他的操作，具体的写入和同步操作由Store Buffer来执行。如果在Store Buffer中的数据写
-入缓存前就需要读取它，还需要从Store Buffer读取数据。
+在CPU和缓存之间存在一个Store Buffer，写操作不会立即向其他CPU核心发送Invalidate消息，而是先将写操作放入到Store Buffer中，然后即可返回执行其他的操作，具体的写入和同步操作由Store Buffer来执行。如果在Store Buffer中的数据写入缓存前就需要读取它，还需要从Store Buffer读取数据。
 
 Invalidate Queue
-由于Store Buffer容量有限，如果Store Buffer发送Invalidate消息后，接受消息的CPU核心无法及时响应，则Store Buffer
-很快就会被写满，因此CPU还引入了Invalidata Queue。其他的CPU核心会将消息放入本核心的Invalidata Queue后立即确认
-Invalidate消息，而无需等待相关的缓存无效。CPU核心在发送Invalidata消息前必须先处理完还未处理完的Invalidate消息。
+由于Store Buffer容量有限，如果Store Buffer发送Invalidate消息后，接受消息的CPU核心无法及时响应，则Store Buffer很快就会被写满，因此CPU还引入了Invalidata Queue。其他的CPU核心会将消息放入本核心的Invalidata Queue后立即确认Invalidate消息，而无需等待相关的缓存无效。CPU核心在发送Invalidata消息前必须先处理完还未处理完的Invalidate消息。
 
-Store Buffer引入了写入延后，Invalidate Queue引入了读取提前 (导致数据延迟更新，从而使得CPU读取到旧数据，看起来
-像是读取提前了)，由于这两者的存在而导致多核心数据同步时出现乱序的问题。
+Store Buffer引入了写入延后，Invalidate Queue引入了读取提前 (导致数据延迟更新，从而使得CPU读取到旧数据，看起来像是读取提前了)，由于这两者的存在而导致多核心数据同步时出现乱序的问题。
 
 =====================================================================================================
 ⭐内存屏障
