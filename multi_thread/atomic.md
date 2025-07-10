@@ -1,3 +1,5 @@
+## 1. Cache Conherence（缓存一致性模型）
+### 1.1. CPU存储结构
 CPU能直接访问的存储结构，由快到慢：
 - 寄存器(Register)
 - cache
@@ -6,41 +8,14 @@ CPU能直接访问的存储结构，由快到慢：
   - L3 Cache (通常是共享的)
 - 内存
 
-## 1. std::atomic
-成员函数:
-  - is_lock_free
-  - store
-  - load
-  - exchange
-  - compare_exchange_weak
-  - compare_exchange_strong
-  - wait (C++20)
-  - notify_one (C++20)
-  - notify_all (C++20)
-  - fetch_add / operator+=
-  - fetch_sub / operator-=
-  - fetch_and / operator&=
-  - fetch_or / operator|=
-  - fetch_xor / operator^=
-
-
-## 2. std::memory_order
-  - memory_order_relaxed
-  - memory_order_consume
-  - memory_order_acquire
-  - memory_order_release
-  - memory_order_acq_rel
-  - memory_order_seq_cst
-
-
-## 3. 缓存一致性协议MESI
-  - Modified (已修改)
+### 1.2. 缓存一致性协议MESI
+  - **M**odified (已修改)
     该缓存行刚刚被修改过，且保证不会出现在其他CPU核心的缓存中。此时该CPU核心为对应数据的唯一持有者。
-  - Exclusive (独占)
+  - **E**xclusive (独占)
     该缓存行的数据目前由该CPU核心独占，但因为没有被修改过，因此与内存数据也一致。
-  - Shared (共享)
+  - **S**hared (共享)
     该缓存行的内容与至少一个其他CPU所共享，因此CPU核心修改此缓存行时需要与其他CPU核心协商。
-  - Invalid (无效)
+  - **I**nvalid (无效)
     该缓存行为无效行。
 
 当一段数据在多个CPU核心中共享时，CPU核心在更新数据时需要通过总线发送Invalidate广播消息，等到其他CPU核心将缓存行置为Invalid状态后才能修改缓存数据。
